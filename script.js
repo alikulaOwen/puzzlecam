@@ -68,9 +68,8 @@ function onTouchMove(e){
     let position = {x:e.touches[0].clientX, y:e.touches[0].clientY}
     onMouseMove(position)
 }
-function onTouchEnd(e){
-    let position = {x:e.touches[0].clientX, y:e.touches[0].clientY}
-    onMouseUp(position)
+function onTouchEnd(){
+    onMouseUp()
 }
 function onMouseDown(e){
     SELECTED_PIECE = getPressedPiece(e);
@@ -92,7 +91,7 @@ function onMouseMove(e){
         SELECTED_PIECE.y=e.y-SELECTED_PIECE.offset.y;
     }
 }
-function onMouseUp(e){
+function onMouseUp(){
     //set selected piece to null
     if (SELECTED_PIECE.isClose()){
         //improve on interactivity by adding appx position
@@ -125,8 +124,8 @@ function handleResize(){
                 );
             SIZE.width =resizer*VIDEO_FEED.videoWidth;
             SIZE.height =resizer*VIDEO_FEED.videoHeight;
-            SIZE.x = window.innerWidth/2-SIZE.width/2;
-            SIZE.y = window.innerHeight/2-SIZE.height/2; 
+            SIZE.x = (window.innerWidth/2)-SIZE.width/2;
+            SIZE.y = (window.innerHeight/2)-SIZE.height/2; 
 }
 
 function scatterPieces(){
@@ -157,8 +156,8 @@ class Piece{
     constructor(rowIndex, columnIndex){
         this.rowIndex = rowIndex;
         this.columnIndex = columnIndex;
-        this.x = SIZE.x + SIZE.width * this.columnIndex/SIZE.columns;
-        this.y = SIZE.y + SIZE.height * this.rowIndex/SIZE.rows;
+        this.x = SIZE.x + (SIZE.width * (this.columnIndex/SIZE.columns));
+        this.y = SIZE.y + (SIZE.height * (this.rowIndex/SIZE.rows));
         this.width = SIZE.width/SIZE.columns;
         this.height = SIZE.height/SIZE.rows;
         this.xCorrect =this.x;
@@ -168,8 +167,8 @@ class Piece{
         context.beginPath();
 
         context.drawImage(VIDEO_FEED,
-            this.columnIndex*VIDEO_FEED.videoWidth/SIZE.columns,
-            this.rowIndex*VIDEO_FEED.videoHeight/SIZE.rows,
+            this.columnIndex*(VIDEO_FEED.videoWidth/SIZE.columns),
+            this.rowIndex*(VIDEO_FEED.videoHeight/SIZE.rows),
             VIDEO_FEED.videoWidth/SIZE.columns,
             VIDEO_FEED.videoHeight/SIZE.rows,
             this.x,
