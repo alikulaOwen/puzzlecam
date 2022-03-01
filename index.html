@@ -13,19 +13,23 @@
 <body onload="main()">
     <canvas id="myCanvas"></canvas>
     <div class="Menu" id="menuItems">
-        <div>
-            <div>
-                <p>Difficulty</p>
+            
+            <div class="menu-wrapper">
+                <span>Difficulty </span> 
                 <select id="difficulty" onChange="setDifficult()">
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
                     <option value="hard">Hard</option>
-                    <option value="Insane">Arkham Night</option>
+                    <option value="insane">Arkham Night</option>
                 </select>
-                <button onclick="restart()">Start</button>
             </div>
+            <button onclick="restart()">Start</button>
+        
+       
         </div>
-        <div></div>
+        <div class="timer-score">
+        <div id="time"></div>
+        <div id="score"></div>
         </div>
 </body>
 
