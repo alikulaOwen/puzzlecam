@@ -16,13 +16,11 @@ let START_TIME = null;
 let END_TIME = null;
 let SCORE = null
 
-
 function main() {
     CANVAS = document.getElementById("myCanvas")
     CONTEXT = CANVAS.getContext("2d");
     eventListeners();
 
-    //get access to user camera
     navigator.mediaDevices.getUserMedia({
         video: true
     }).then((signal) => {
@@ -32,14 +30,14 @@ function main() {
 
         VIDEO_FEED.onloadeddata = () => {
             handleResize()
-            window.addEventListener('resize', handleResize) // handles rsize and listens for change in orientation
+            window.addEventListener('resize', handleResize)
             initPieces(SIZE.rows, SIZE.columns)
+            scatterPieces();
             updateGame()
         };
     }).catch(err => {
         alert("Camera: " + err);
     });
-
 }
 
 function updateGame() {
@@ -53,12 +51,14 @@ function updateGame() {
     for (let i = 0; i < PIECES.length; i++) {
         PIECES[i].draw(CONTEXT);
     }
-    updateTimer()
-        //updateScore()
+    updateTimer();
+    if (isGameComplete() && END_TIME == null) {
+        let finishTime = new Date().getTime();
+        END_TIME = finishTime;
+        alert("Congratulations! You completed the puzzle in " + formatTime(END_TIME - START_TIME));
+    }
     window.requestAnimationFrame(updateGame);
-
 }
-
 
 function eventListeners() {
     CANVAS.addEventListener("mousedown", onMouseDown);
@@ -107,16 +107,13 @@ function onMouseMove(e) {
 }
 
 function onMouseUp() {
-    //set selected piece to null
     if (SELECTED_PIECE.isClose()) {
-        //improve on interactivity by adding appx position
         SELECTED_PIECE.snap();
     }
     SELECTED_PIECE = null;
 }
 
 function getPressedPiece(position) {
-    //iterate inn reverse order prevent select last piece
     for (let i = PIECES.length - 1; i >= 0; i--) {
         if (position.x > PIECES[i].x && position.x < PIECES[i].x + PIECES[i].width &&
             position.y > PIECES[i].y && position.y < PIECES[i].y + PIECES[i].height) {
@@ -125,7 +122,6 @@ function getPressedPiece(position) {
     }
     return null
 }
-
 
 function scatterPieces() {
     for (let i = 0; i < PIECES.length; i++) {
@@ -143,7 +139,6 @@ function initPieces(rows, columns) {
     SIZE.rows = rows;
     SIZE.columns = columns;
     PIECES = [];
-    //iterating through the pieces
     for (let i = 0; i < SIZE.rows; i++) {
         for (let j = 0; j < SIZE.columns; j++) {
             PIECES.push(new Piece(i, j));
@@ -151,22 +146,24 @@ function initPieces(rows, columns) {
     }
 }
 
-function setDifficult() {
+function setDifficulty() {
     let difficulty = document.getElementById("difficulty").value;
     switch (difficulty) {
         case "easy":
-            initPieces(4, 4);
+            initPieces(3, 3);
             break;
         case "medium":
             initPieces(6, 6);
             break;
         case "hard":
-            initPieces(8, 8);
+            initPieces(9, 9);
             break;
         case "insane":
-            initPieces(20, 20);
+            initPieces(12, 12);
             break;
     }
+    scatterPieces();
+    START_TIME = new Date().getTime();
 }
 
 function restart() {
@@ -180,7 +177,6 @@ function updateTimer() {
     let now = new Date().getTime();
     if (START_TIME != null) {
         if (END_TIME != null) {
-
             document.getElementById("time").innerHTML = formatTime(END_TIME - START_TIME);
         } else {
             document.getElementById("time").innerHTML = formatTime(now - START_TIME);
@@ -188,45 +184,13 @@ function updateTimer() {
     }
 }
 
-// function updateScore() {
-//     let diff = document.getElementById("difficulty").value;
-//     switch (diff) {
-//         case "easy":
-//             if (START_TIME != null) {
-//                 let milliseconds = (new Date().getTime()) - START_TIME
-//                 document.getElementById("score").innerHTML = scoreAwarder(milliseconds, 8)
-//             }
-//             break;
-//         case "medium":
-//             initPieces(6, 6);
-//             break;
-//         case "hard":
-//             initPieces(8, 8);
-//             break;
-//         case "insane":
-//             initPieces(20, 20);
-//             break;
-//     }
-
-
-// }
-
-function scoreAwarder(milliseconds, pts) {
-    let secs = milliseconds / 1000;
-    SCORE = secs / pts
-    return SCORE
-
-
-}
-
 function isGameComplete() {
     for (let i = 0; i < PIECES.length; i++) {
-        if (PIECES[i].correct == false) {
+        if (!PIECES[i].correct) {
             return false;
-        };
-        return true;
-
+        }
     }
+    return true;
 }
 
 function formatTime(milliseconds) {
@@ -244,80 +208,9 @@ function formatTime(milliseconds) {
     return formattedTime;
 }
 
-function eventListeners() {
-    CANVAS.addEventListener("mousedown", onMouseDown);
-    CANVAS.addEventListener("mousemove", onMouseMove);
-    CANVAS.addEventListener("mouseup", onMouseUp);
-    CANVAS.addEventListener("touchstart", onTouchStart);
-    CANVAS.addEventListener("touchmove", onTouchMove);
-    CANVAS.addEventListener("touchend", onTouchEnd);
-}
-
-function onTouchStart(e) {
-    let position = { x: e.touches[0].clientX, y: e.touches[0].clientY }
-    onMouseDown(position)
-}
-
-function onTouchMove(e) {
-    let position = { x: e.touches[0].clientX, y: e.touches[0].clientY }
-    onMouseMove(position)
-}
-
-function onTouchEnd() {
-    onMouseUp()
-}
-
-function onMouseDown(e) {
-    SELECTED_PIECE = getPressedPiece(e);
-    if (SELECTED_PIECE != null) {
-        const index = PIECES.indexOf(SELECTED_PIECE)
-        if (index > -1) {
-            PIECES.splice(index, 1);
-            PIECES.push(SELECTED_PIECE);
-        }
-        SELECTED_PIECE.offset = {
-            x: e.x - SELECTED_PIECE.x,
-            y: e.y - SELECTED_PIECE.y
-        }
-    }
-}
-
-function onMouseMove(e) {
-    if (SELECTED_PIECE != null) {
-        SELECTED_PIECE.x = e.x - SELECTED_PIECE.offset.x;
-        SELECTED_PIECE.y = e.y - SELECTED_PIECE.offset.y;
-    }
-}
-
-function onMouseUp() {
-    //set selected piece to null
-    if (SELECTED_PIECE.isClose()) {
-        //improve on interactivity by adding appx position
-        SELECTED_PIECE.snap();
-        if (isGameComplete() && END_TIME == null) {
-            let finishTime = new Date().getTime();
-            END_TIME = finishTime;
-        }
-    }
-    SELECTED_PIECE = null;
-}
-
-function getPressedPiece(position) {
-    //iterate inn reverse order prevent select last piece
-    for (let i = PIECES.length - 1; i >= 0; i--) {
-        if (position.x > PIECES[i].x && position.x < PIECES[i].x + PIECES[i].width &&
-            position.y > PIECES[i].y && position.y < PIECES[i].y + PIECES[i].height) {
-            return PIECES[i]
-        }
-    }
-    return null
-}
-
 function handleResize() {
-    //centering video feed feed and resizing based on resolution
     CANVAS.width = window.innerWidth;
     CANVAS.height = window.innerHeight;
-
 
     let resizer = SCALER *
         Math.min(
@@ -344,7 +237,6 @@ class Piece {
     }
     draw(context) {
         context.beginPath();
-
         context.drawImage(VIDEO_FEED,
             this.columnIndex * (VIDEO_FEED.videoWidth / SIZE.columns),
             this.rowIndex * (VIDEO_FEED.videoHeight / SIZE.rows),
@@ -376,6 +268,4 @@ function distance(p1, p2) {
     )
 }
 
-// to check if all pieces are in place. Iterate thru the positions
-
-// to check if all pieces are in place. Iterate thru the positions
+main();
